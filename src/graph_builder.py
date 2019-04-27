@@ -88,6 +88,7 @@ class GraphBuilder():
             for doc in sample_mentions:
 
                 for mention in doc:
+
                     mention['id'] = idx
                     idx += 1
 
@@ -98,7 +99,6 @@ class GraphBuilder():
     def _make_undirected(self, edge_list):
         """Takes an edge-list and adds to it edges in the reverse direction.
         """
-
         rev_edge_list = [(edge[1], edge[0]) for edge in edge_list]
         new_edge_list = edge_list + rev_edge_list
 
@@ -107,7 +107,6 @@ class GraphBuilder():
     def _build_doc_based(self, sample):
         """Creates an edge-list containing all within-document relationships.
         """
-
         edge_list = []  # List of edge tuples (id_i, id_j)
 
         for doc in sample:
@@ -122,7 +121,6 @@ class GraphBuilder():
     def _build_match(self, sample):
         """Creates an edge-list containing all mention matches.
         """
-
         edge_list = []
 
         checked = set()  # Track IDs that have already had edges added.
@@ -157,7 +155,6 @@ class GraphBuilder():
     def _build_coref(self, sample):
         """Creates an edge-list containing all coref mentions.
         """
-
         edge_list = []
 
         for doc in sample:
@@ -174,7 +171,6 @@ class GraphBuilder():
         'all_edges' corresponds to an edge list containing all edges
         across all relation types found in the above functions.
         """
-
         # First get all possible ID pairs.
         all_ids = [mention['id'] for mention in self.flat]
         all_pairs = self._make_undirected(list(combinations(all_ids, 2)))
