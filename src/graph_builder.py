@@ -38,14 +38,15 @@ class GraphBuilder():
                 `torch.split()`.
         """
         self._make_names()
-
+        from pprint import pprint
+        pprint(self.samples)
         graphs = []
         graph_split_sizes = []
 
         # Iterate over each training example and build the graph.
-        for sample_key, sample in tqdm(self.samples.items()):
+        for _, sample in tqdm(self.samples.items()):
             # We only need mention information to build the graph
-            sample = sample['mention']
+            sample = sample['mentions']
 
             # Build graphs.
             doc_based_edges = self._build_doc_based(sample)
@@ -66,7 +67,7 @@ class GraphBuilder():
                                                   coref_edges +
                                                   comp_edges))
 
-            graph = torch.cat((edge_index, rels.g(1, -1)))
+            graph = torch.cat((edge_index, rels.reshape(1, -1)))
             graphs.append(graph)
 
             graph_split_sizes.append(graph.shape[1])
@@ -80,19 +81,18 @@ class GraphBuilder():
         """Adds unique indices to each mention for each sample in `self.samples`.
         """
 
-        for _, sample in self.samples.items():
+        for sample in self.samples.values():
             idx = 0
+            sample_mentions = sample['mentions']
 
-            for doc in sample:
+            for doc in sample_mentions:
 
                 for mention in doc:
                     mention['id'] = idx
+                    idx += 1
 
                     for coref in mention['corefs']:
                         coref['id'] = idx
-                        idx += 1
-
-                    if len(mention['corefs']) == 0:
                         idx += 1
 
     def _make_undirected(self, edge_list):
@@ -139,7 +139,7 @@ class GraphBuilder():
         # Check for case-insensitive matches.
         for mention in flat:
             mention_id = mention['id']
-            mention_str = mention['mention'].lower()
+            mention_str = mention['text'].lower()
             if mention_str in checked:
                 continue
             checked.add(mention_str)
@@ -148,7 +148,7 @@ class GraphBuilder():
                 mention2_id = mention2['id']
                 if mention_id == mention2_id:  # Avoid self-loops
                     continue
-                mention2_str = mention2['mention'].lower()
+                mention2_str = mention2['text'].lower()
                 if mention_str == mention2_str:  # Positive match
                     edge_list.append((mention_id, mention2_id))
 
